@@ -1,0 +1,5 @@
+google-adk[db]==2.9.2
+sqlalchemy[asyncio]==2.0.47
+asyncpg==0.30.0
+redis==5.2.1
+uvicorn==0.34.0
