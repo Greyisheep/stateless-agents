@@ -3,11 +3,8 @@
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "hostRequirements": {"cpus": 4, "memory": "8gb"},
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {"minikube": "none", "helm": "none"},
-    "ghcr.io/devcontainers-extra/features/kind:1": {},
-    "ghcr.io/va-h/devcontainers-features/uv:1": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {"dockerDashComposeVersion": "none"}
   },
-  "postCreateCommand": "make up",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   "postAttachCommand": "echo 'Ready. Run: make board (in one terminal), then make act1 (in another).'"
 }
