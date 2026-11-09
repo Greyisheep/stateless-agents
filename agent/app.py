@@ -200,7 +200,22 @@ app = FastAPI(title="helpdesk-agent")
 
 @app.on_event("startup")
 async def startup() -> None:
+    # Wait for Postgres instead of crashing. After a codespace or laptop restart every pod
+    # starts at once, and the agent used to exit before Postgres's name resolved, then sit
+    # in Kubernetes' restart back-off for a minute or more.
+    for attempt in range(60):
+        try:
+            async with engine.connect() as db:
+                await db.execute(text("SELECT 1"))
+            break
+        except Exception:  # noqa: BLE001 - not reachable yet; the readiness probe stays red meanwhile
+            if attempt == 59:
+                raise
+            await asyncio.sleep(1)
     async with engine.begin() as db:
+        # CREATE TABLE IF NOT EXISTS is not safe when six pods run it at the same moment on an
+        # empty database (they crash with a duplicate pg_type key), so take turns.
+        await db.execute(text("SELECT pg_advisory_xact_lock(4471)"))
         await db.execute(text("CREATE TABLE IF NOT EXISTS fences (conversation_id text PRIMARY KEY, fence bigint NOT NULL)"))
         await db.execute(text("CREATE TABLE IF NOT EXISTS refunds (refund_id text PRIMARY KEY, order_id text, "
                               "conversation_id text, pod text, fence bigint, at timestamptz DEFAULT now())"))
